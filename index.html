@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>    
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Painel MQTT</title>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+  </head>
+  <body>
+    <div class="container">
+      <div class="page-header">
+          <h1>Painel MQTT</h1>
+      </div>
+      <table id="table" class="table table-striped table-bordered">
+        <thead class="thead-default">
+          <tr>
+            <th>Dispositivo</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+        </tbody>
+      </table>
+    </div>
+
+    <script src="http://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"></script> 
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script> 
+    <script>
+      $(document).ready(function() {
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        socket.on('mqtt_message', function(data) {
+          console.log(data);
+
+          const nameLine = data['topic'].replace('/', '_');
+          const value = data['payload'];
+          
+          switch (nameLine) {
+            case 'dev1_lamp1':
+              changeValueLineTable(nameLine, value);
+              break;
+            case 'dev1_lamp2':
+              changeValueLineTable(nameLine, value);
+              break;
+            case 'dev2':
+              changeValueLineTable(nameLine, value);
+              break;
+          }
+
+          function changeValueLineTable(nameLine, value) {
+            const nameDevice = nameLine.replace('dev1_', '');
+            // console.log(nameLine, nameDevice, value);
+
+            let line = $(`#${nameLine}`).val();
+            if (line != null || line != undefined) {
+              $('#table').find(`tr#${nameLine}`).find("td:eq(1)").text(value);
+            } else {
+              const lineTable = 
+                `<tr id="${nameLine}">
+                  <td>${nameDevice}</td>
+                  <td>${value}</td>
+                </tr>`;
+
+              $('#table').find('tbody').append(lineTable);
+            }
+          }
+        })
+      });
+    </script>
+
+  </body>
+</html>
+
